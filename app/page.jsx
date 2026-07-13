@@ -1,6 +1,8 @@
 'use client'
 import { useState, useRef } from 'react'
 import PdfViewer from './component/pdfviewer' //iframe htake pdfjs lga rhe
+import GestureLayer from './component/GestureLayer'
+
 // ─── Main App ────────────────────────────────────────────────────────────────
 export default function Home() {
   const [pdfUrl, setPdfUrl]     = useState(null)
@@ -10,6 +12,7 @@ export default function Home() {
   const [loading, setLoading]   = useState(false)
   const fileInputRef            = useRef(null)
   const msgEndRef               = useRef(null)
+  const pdfViewerRef            = useRef(null)
 
   const handleFile = (file) => {
     if (!file || file.type !== 'application/pdf') return
@@ -41,6 +44,8 @@ export default function Home() {
   if (pdfUrl) {
     return (
       <div style={s.splitRoot}>
+        {/* Camera + Hand Gesture Controller */}
+        <GestureLayer pdfViewerRef={pdfViewerRef} setInput={setInput} />
 
         {/* LEFT — PDF Viewer */}
         <div style={s.pdfSide}>
@@ -48,7 +53,7 @@ export default function Home() {
             <span style={s.dot} />
             <span style={s.sideTitle}>📄 {pdfName}</span>
           </div>
-           <PdfViewer pdfUrl={pdfUrl} />
+          <PdfViewer ref={pdfViewerRef} pdfUrl={pdfUrl} />
         </div>
 
         {/* DIVIDER */}

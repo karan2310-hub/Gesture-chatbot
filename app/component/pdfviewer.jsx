@@ -1,5 +1,5 @@
 'use client'
-import {useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react'
 const styles = {
   wrapper: {
     height: '100%',
@@ -32,13 +32,64 @@ const styles = {
   },
 }
 
-export default function PdfViewer({ pdfUrl }) {
+const PdfViewer = forwardRef(function PdfViewer({ pdfUrl }, ref) {
   const canvasRef   = useRef(null)
   const pdfRef      = useRef(null)
   const renderTaskRef = useRef(null)   // ← ref so cleanup always sees latest task
   const [pageNum, setPageNum]     = useState(1)
   const [totalPages, setTotalPages] = useState(0)
   const [scale, setScale]         = useState(1.5)
+
+  useImperativeHandle(ref, () => ({
+    zoomIn: () => setScale(s => s + 0.2),
+    zoomOut: () => setScale(s => Math.max(0.5, s - 0.2)),
+    nextPage: () => setPageNum(p => Math.min(totalPages, p + 1)),
+    prevPage: () => setPageNum(p => Math.max(1, p - 1)),
+    getTextInRect: async (rect) => {
+      if (!pdfRef.current) return '';
+      try {
+        const page = await pdfRef.current.getPage(pageNum);
+        const viewport = page.getViewport({ scale });
+        
+        // rect contains normalized coordinates (0 to 1) relative to canvas size
+        const canvasX1 = rect.x1 * viewport.width;
+        const canvasY1 = rect.y1 * viewport.height;
+        const canvasX2 = rect.x2 * viewport.width;
+        const canvasY2 = rect.y2 * viewport.height;
+        
+        const [pdfX1, pdfY1] = viewport.convertToPdfPoint(canvasX1, canvasY1);
+        const [pdfX2, pdfY2] = viewport.convertToPdfPoint(canvasX2, canvasY2);
+        
+        const minX = Math.min(pdfX1, pdfX2);
+        const maxX = Math.max(pdfX1, pdfX2);
+        const minY = Math.min(pdfY1, pdfY2);
+        const maxY = Math.max(pdfY1, pdfY2);
+        
+        const textContent = await page.getTextContent();
+        const items = textContent.items;
+        
+        const selectedItems = items.filter(item => {
+          const tx = item.transform[4];
+          const ty = item.transform[5];
+          const itemWidth = item.width || 0;
+          const itemHeight = item.height || 0;
+          
+          return (
+            tx + itemWidth >= minX &&
+            tx <= maxX &&
+            ty + itemHeight >= minY &&
+            ty <= maxY
+          );
+        });
+        
+        return selectedItems.map(item => item.str).join(' ');
+      } catch (err) {
+        console.error("Error extracting text in rect:", err);
+        return '';
+      }
+    },
+    getCanvasElement: () => canvasRef.current,
+  }));
 
 //   useEffect(() => {
 //     if (!pdfUrl) return
@@ -171,6 +222,6 @@ useEffect(() => {
 
     </div>
   )
-  
+})
 
-}
+export default PdfViewer
