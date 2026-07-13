@@ -65,8 +65,8 @@ export function isFist(landmarks) {
 
   // Thumb is tucked in if it is close to the index base (5) or middle base (9)
   const handScale = getHandScale(landmarks);
-  const thumbTucked = (dist(landmarks[4], landmarks[5]) / handScale < 1.15) || 
-                      (dist(landmarks[4], landmarks[9]) / handScale < 1.15);
+  const thumbTucked = (dist(landmarks[4], landmarks[5]) / handScale < 1.15) ||
+    (dist(landmarks[4], landmarks[9]) / handScale < 1.15);
 
   return indexCurled && middleCurled && ringCurled && pinkyCurled && thumbTucked;
 }
@@ -77,13 +77,13 @@ export function isFist(landmarks) {
  */
 export function isPinching(landmarks) {
   if (!landmarks || landmarks.length < 21) return false;
-  
+
   const handScale = getHandScale(landmarks);
   const pinchDist = dist(landmarks[4], landmarks[8]) / handScale;
-  
+
   // Middle finger must be extended so we don't confuse a pinch with a fist
   const middleCurled = isFingerCurled(landmarks, 12, 10, 9);
-  
+
   return pinchDist < 0.6 && !middleCurled;
 }
 
@@ -159,7 +159,7 @@ export function getThumbSwipeDirection(landmarks) {
   const middleCurled = isFingerCurled(landmarks, 12, 10, 9);
   const ringCurled = isFingerCurled(landmarks, 16, 14, 13);
   const pinkyCurled = isFingerCurled(landmarks, 20, 18, 17);
-  
+
   if (!indexCurled || !middleCurled || !ringCurled || !pinkyCurled) return null;
 
   const handScale = getHandScale(landmarks);
@@ -170,7 +170,7 @@ export function getThumbSwipeDirection(landmarks) {
   const thumbX = 1 - landmarks[4].x;
   const mcpX = 1 - landmarks[2].x;
   const thumbDiff = (thumbX - mcpX) / handScale;
-
+  //testing
   // If pointing right: thumbDiff is positive and large
   // If pointing left: thumbDiff is negative and large
   if (thumbDiff > 0.35) return 'right';
