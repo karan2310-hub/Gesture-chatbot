@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 import React, { useEffect, useRef, useState } from 'react'
 import { isFist, isPinching, isThreeFingerHold, getHandScale, dist, getThumbSwipeDirection } from '../utils/gestureUtils'
 
@@ -330,13 +330,18 @@ export default function GestureLayer({ pdfViewerRef, setInput }) {
     // 3. THUMB SWIPE — page navigation
     const thumbDir = getThumbSwipeDirection(lm)
     if (thumbDir) {
+      // Reset fist counter while thumb swipe pose is held — prevents accidental gesture mode toggle
+      fistActiveFramesRef.current = 0
+      fistStartTimeRef.current = null
+
       if (thumbSwipeDirectionRef.current !== thumbDir) { thumbSwipeDirectionRef.current = thumbDir; thumbSwipeStartTimeRef.current = now }
       else {
         const elapsed = now - thumbSwipeStartTimeRef.current
-        setCurrentGesture(`Swipe ${thumbDir === 'left' ? 'Next' : 'Prev'}: ${(elapsed/1000).toFixed(1)}s / 0.5s`)
+        // left thumb = Previous page, right thumb = Next page (intuitive direction)
+        setCurrentGesture(`Swipe ${thumbDir === 'left' ? '← Prev' : 'Next →'}: ${(elapsed/1000).toFixed(1)}s / 0.5s`)
         if (elapsed >= 500 && now > swipeCooldownRef.current) {
-          if (thumbDir === 'left') { pdfViewerRef.current?.nextPage(); setStatusMessage('Next Page') }
-          else { pdfViewerRef.current?.prevPage(); setStatusMessage('Previous Page') }
+          if (thumbDir === 'left') { pdfViewerRef.current?.prevPage(); setStatusMessage('← Previous Page') }
+          else { pdfViewerRef.current?.nextPage(); setStatusMessage('Next Page →') }
           swipeCooldownRef.current = now + 1500; thumbSwipeStartTimeRef.current = null; thumbSwipeDirectionRef.current = null
         }
       }
