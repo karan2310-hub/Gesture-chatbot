@@ -141,10 +141,7 @@ useEffect(() => {
 
   const loadPdf = async () => {
     const pdfjsLib = await import('pdfjs-dist')
-    pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-      'pdfjs-dist/build/pdf.worker.min.mjs',
-      import.meta.url
-    ).toString()
+    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/5.7.284/pdf.worker.min.mjs`
 
     const pdf = await pdfjsLib.getDocument(pdfUrl).promise
     pdfRef.current = pdf        // ← ref mein save karo
